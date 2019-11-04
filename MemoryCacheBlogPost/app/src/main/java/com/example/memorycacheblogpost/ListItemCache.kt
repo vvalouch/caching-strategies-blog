@@ -1,5 +1,10 @@
 package com.example.memorycacheblogpost
 
+import android.content.SharedPreferences
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+
+
 class ListItemCache private constructor() {
 
     private val itemList = ArrayList<ListItem>()
@@ -50,3 +55,27 @@ data class ListItem(
     var vendorName: String = "vendor",
     var score: Int = 0
 )
+
+interface Storage<T> {
+    fun storeAll(items: List<T>): Boolean
+    fun getAll(): List<T>
+}
+
+class SharedPrefStorage(val sharedPreferences: SharedPreferences, val gson: Gson) :
+    Storage<ListItem> {
+    companion object {
+        public const val LIST_ITEM_KEY = "list.item.key"
+    }
+
+    override fun storeAll(items: List<ListItem>): Boolean {
+        val itemString = gson.toJson(items)
+        return sharedPreferences.edit().putString(LIST_ITEM_KEY, itemString).commit()
+    }
+
+    override fun getAll(): List<ListItem> {
+        val json = sharedPreferences.getString(LIST_ITEM_KEY, "")
+        val collectionType = TypeToken.getParameterized(List::class.java, ListItem::class.java).type
+        return gson.fromJson(json, collectionType)
+    }
+
+}
