@@ -4,31 +4,37 @@ import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-
+/**
+ * Thread safe implemetation
+ */
 class ListItemCache private constructor() {
 
-    private val itemList = ArrayList<ListItem>()
+    private var itemList = ArrayList<ListItem>()
     private var observer: (itemList: List<ListItem>) -> Any = {}
 
     companion object {
         public val shared = ListItemCache()
     }
 
+    @Synchronized
     fun setObserver(inObserver: (itemList: List<ListItem>) -> Any) {
         observer = inObserver
         observer(itemList)
     }
 
+    @Synchronized
     fun cleanObserver() {
         observer = {}
     }
 
+    @Synchronized
     fun replaceItems(items: List<ListItem>) {
         itemList.clear()
         itemList.addAll(items)
         observer(itemList)
     }
 
+    @Synchronized
     fun addItem(item: ListItem) {
         if (!this.itemList.contains(item)) {
             this.itemList.add(item)
@@ -36,14 +42,17 @@ class ListItemCache private constructor() {
         }
     }
 
+    @Synchronized
     fun getItems(): ArrayList<ListItem> {
         return itemList
     }
 
+    @Synchronized
     fun getItem(position: Int): ListItem? {
         return itemList.getOrNull(position)
     }
 
+    @Synchronized
     fun clean() {
         this.itemList.clear()
         observer(itemList)
